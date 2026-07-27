@@ -135,6 +135,14 @@ These defaults reflect the current interactive wizard and runtime behavior.
 | Output report | final HTML review report |
 | Runtime root | `.evocast/` |
 
+## Build Mode ⚡
+
+Build mode runs the same autonomous research loop with a reduced execution budget. The task still goes through initialization, baseline establishment, dataset characterization, baseline diagnosis, formal research rounds, state updates, and final HTML reporting.
+
+Build mode switches the training, validation, and test stages from the formal experimental budget to a smoke-test budget. This setting keeps the system structure, baseline-selection logic, diagnosis path, and gate flow unchanged while reducing runtime cost for end-to-end validation.
+
+Build mode fits fast environment checks, provider configuration checks, repository-level edit validation, prompt regression, and preflight verification before longer formal runs.
+
 ## Evaluation Protocol 🧪
 
 The forecasting evaluation workflow in this repository follows the benchmark protocol implemented in [TFB](https://github.com/decisionintelligence/TFB). EvoCast builds autonomous research, bounded repository-level implementation, and iterative state updates on top of this forecasting evaluation setup.

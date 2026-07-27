@@ -136,6 +136,14 @@ python -m pip install -r requirements-full.txt
 | 输出报告 | 最终 HTML review report |
 | 运行根目录 | `.evocast/` |
 
+## Build Mode ⚡
+
+Build mode 以更轻的执行预算运行同一条自主研究闭环。任务仍然经过初始化、baseline 建立、dataset characterization、baseline diagnosis、formal research rounds、状态更新和最终 HTML 报告。
+
+Build mode 会将原本正式实验预算下的训练、验证和测试切换为 smoke-test 预算。这个设置保持系统结构、baseline 选择逻辑、诊断路径和 gate 流程一致，同时以更低的时间与算力成本完成端到端验证。
+
+这一模式适合快速检查环境与依赖、provider 配置、repository-level 代码修改、prompt 回归，以及正式长周期运行前的预演验证。
+
 ## Evaluation Protocol 🧪
 
 本仓库中的 forecasting evaluation workflow 遵循 [TFB](https://github.com/decisionintelligence/TFB) 实现的 benchmark protocol。EvoCast 在该 forecasting evaluation setup 之上完成 autonomous research、受边界约束的 repository-level implementation 和迭代状态更新。
