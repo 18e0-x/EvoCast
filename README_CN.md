@@ -5,7 +5,8 @@
     <a href="./README.md"><img src="https://img.shields.io/badge/English-Switch-2f81f7?style=flat-square" alt="English"></a>
     <a href="./README_CN.md"><img src="https://img.shields.io/badge/简体中文-当前-8b5cf6?style=flat-square" alt="简体中文"></a>
   </p>
-  <p>EvoCast 是一个面向深度学习时序预测开发的自主研究系统，能够在真实代码仓库中自动执行模块级架构组合、功能插入、候选实现与实验验证。它围绕给定数据集持续改进模型结构，为不同领域构建任务特定的专用时序预测模型。所有研究过程都在统一、可审计的评测协议下展开，从而保证开发路径透明、结果比较公平、实验记录完整。</p>
+  <p><em>“只剩细胞核了可以用 EvoCast 开发时序预测模型吗？”</em></p>
+  <p>EvoCast 是一个面向深度学习时序预测开发的自主研究系统，能够在真实代码仓库中自动执行模块级架构组合、功能插入、候选实现与实验验证。它围绕给定数据集持续改进选定的模型结构，为不同领域构建任务特定的专用时序预测模型。所有研究过程都在统一、可审计的评测协议下展开，从而保证开发路径透明、结果比较公平、实验记录完整。</p>
 </div>
 
 <p align="center">
