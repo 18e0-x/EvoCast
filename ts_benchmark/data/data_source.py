@@ -70,6 +70,19 @@ class LocalDataSource(DataSource):
 
     #: index column name of the metadata
     _INDEX_COL = "file_name"
+    _META_COLUMNS = [
+        "file_name",
+        "freq",
+        "if_univariate",
+        "size",
+        "length",
+        "trend",
+        "seasonal",
+        "stationary",
+        "transition",
+        "shifting",
+        "correlation",
+    ]
 
     def __init__(self, local_data_path: str, metadata_file_name: str):
         """
@@ -151,7 +164,18 @@ class LocalDataSource(DataSource):
         """
         Loads metadata from a local csv file
         """
+        if not os.path.exists(self.metadata_path):
+            os.makedirs(os.path.dirname(self.metadata_path), exist_ok=True)
+            metadata = pd.DataFrame(columns=self._META_COLUMNS)
+            metadata.to_csv(self.metadata_path, index=False)
+            metadata.set_index(self._INDEX_COL, drop=False, inplace=True)
+            logger.info("Metadata file missing. Created empty metadata at %s", self.metadata_path)
+            return metadata
         metadata = pd.read_csv(self.metadata_path)
+        missing_cols = [col for col in self._META_COLUMNS if col not in metadata.columns]
+        for col in missing_cols:
+            metadata[col] = ""
+        metadata = metadata[self._META_COLUMNS]
         metadata.set_index(self._INDEX_COL, drop=False, inplace=True)
         return metadata
 

@@ -322,8 +322,33 @@ def load_series_info(file_path: str) -> dict:
     """
     data = read_data(file_path)
     file_name = os.path.basename(file_path)
-    freq = pd.infer_freq(data.index)
-    freq = FREQ_MAP.get(freq, "other")
+    freq = "other"
+    if isinstance(data.index, pd.DatetimeIndex):
+        try:
+            inferred = pd.infer_freq(data.index)
+        except ValueError:
+            inferred = None
+        if inferred is not None:
+            freq = FREQ_MAP.get(inferred, "other")
+        elif len(data.index) >= 2:
+            deltas = data.index.to_series().diff().dropna()
+            positive_deltas = deltas[deltas > pd.Timedelta(0)]
+            if not positive_deltas.empty:
+                median_delta = positive_deltas.median()
+                seconds = float(median_delta.total_seconds())
+                day_seconds = 24 * 60 * 60
+                if seconds < day_seconds:
+                    freq = "hourly"
+                elif seconds < 7 * day_seconds:
+                    freq = "daily"
+                elif seconds < 28 * day_seconds:
+                    freq = "weekly"
+                elif seconds < 92 * day_seconds:
+                    freq = "monthly"
+                elif seconds < 366 * day_seconds:
+                    freq = "quarterly"
+                else:
+                    freq = "yearly"
     if_univariate = data.shape[1] == 1
     return {
         "file_name": file_name,
