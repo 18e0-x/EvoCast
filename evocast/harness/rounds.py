@@ -700,12 +700,16 @@ def record_metric_completed_result(
     label = str(research_id or "").strip()
     if label:
         record = _get_round_by_label(base_dir, task_id, label)
+        if not record:
+            raise RuntimeError(f"missing explicit research round record: {label}")
     elif round_id is not None:
         record = _get_round(base_dir, task_id, int(round_id))
+        if not record:
+            raise RuntimeError(f"missing explicit round record: {int(round_id)}")
     else:
         record = current_round(base_dir, task_id) or {}
-    if not record:
-        raise RuntimeError("no round record found for completed metric result")
+        if not record:
+            raise RuntimeError("no round record found for completed metric result")
 
     if round_id is not None and int(record.get("round_id") or 0) != int(round_id):
         raise RuntimeError(

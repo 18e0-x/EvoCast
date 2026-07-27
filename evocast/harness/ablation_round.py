@@ -21,12 +21,20 @@ from evocast.state.runtime.store import load_runtime_state
 from evocast.tools.tfb_seed_eval import run_seed_eval
 
 
-def _current_best_reference(session: AgentSession, fallback_metrics: dict[str, Any]) -> dict[str, Any]:
+def _selected_baseline_source_authority(session: AgentSession, fallback_metrics: dict[str, Any]) -> dict[str, Any]:
     state = load_runtime_state(session.base_dir, session.task_id, auto_migrate=False)
+    baseline = state.baseline.to_dict() if state.baseline and state.baseline.candidate_id else {}
+    if not baseline:
+        raise RuntimeError("run_ablation_round requires selected baseline in runtime_state")
     current_best = state.current_best.to_dict() if state.current_best and state.current_best.candidate_id else {}
-    if fallback_metrics and not current_best.get("metrics"):
-        current_best["metrics"] = dict(fallback_metrics)
-    return current_best
+    reference_metrics = dict(fallback_metrics or current_best.get("metrics") or {})
+    if reference_metrics and not baseline.get("metrics"):
+        baseline["metrics"] = reference_metrics
+    if reference_metrics:
+        baseline["reference_metrics"] = reference_metrics
+    if current_best.get("candidate_id"):
+        baseline["reference_candidate_id"] = str(current_best.get("candidate_id") or "")
+    return baseline
 
 
 def _outcome_record(
@@ -135,9 +143,7 @@ def run_ablation_round(
     objective_metric = str(kwargs.get("objective_metric") or "mse_norm")
     budget = normalize_budget(kwargs.get("budget") or "unified", session.base_dir)
     default_seed = baseline_seed(session.base_dir)
-    baseline = _current_best_reference(session, dict(kwargs.get("reference_metrics") or {}))
-    if not baseline:
-        raise RuntimeError("run_ablation_round requires current_best in runtime_state")
+    baseline = _selected_baseline_source_authority(session, dict(kwargs.get("reference_metrics") or {}))
     contract = build_ablation_contract(
         base_dir=session.base_dir,
         task_id=session.task_id,

@@ -6,7 +6,7 @@ from pathlib import Path
 from evocast.build.contract_compiler import build_ablation_contract
 from evocast.build.source_snapshot import source_manifest
 from evocast.harness.rounds import round_progress, start_round
-from evocast.state.runtime.store import sync_best_baseline
+from evocast.state.runtime.store import sync_best_baseline, sync_current_best
 
 
 def _write_json(path: Path, payload: dict) -> None:
@@ -146,6 +146,42 @@ def test_ablation_contract_keeps_every_verified_source_binding_file_editable(tmp
         any(source_file in " ".join(command) for command in contract.internal_check_commands)
         for source_file in ("baseline.py", "layers.py")
     )
+
+
+def test_ablation_contract_uses_selected_baseline_source_authority(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / "baseline.py").write_text("class Baseline:\n    pass\n", encoding="utf-8")
+    base_dir = tmp_path / "runtime"
+    task_id = "ablation_selected_baseline_source"
+    _task(base_dir, task_id, build_mode=False)
+    baseline = _baseline(repo)
+    sync_best_baseline(str(base_dir), task_id, baseline)
+    sync_current_best(
+        str(base_dir),
+        task_id,
+        {
+            **baseline,
+            "candidate_id": "Research003",
+            "metrics": {"mse_norm": 0.9},
+            "source_ref": {},
+        },
+    )
+
+    contract = build_ablation_contract(
+        base_dir=str(base_dir),
+        task_id=task_id,
+        target=_target("experiment"),
+        baseline=baseline,
+        objective_metric="mse_norm",
+        repo_dir=repo,
+        repair_budget=1,
+    )
+
+    assert contract.base_candidate_id == "baseline_fixture"
+    assert contract.base_source_ref["candidate_id"] == "baseline_fixture"
+    assert contract.base_source_ref["source_checkout"] == str(repo.resolve())
+    assert contract.allowed_edit_files == ["baseline.py"]
 
 
 def test_ablation_artifacts_never_consume_formal_research_budget(tmp_path: Path) -> None:

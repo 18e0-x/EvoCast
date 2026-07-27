@@ -320,6 +320,42 @@ def test_metric_completed_sync_preserves_marginal_no_seed_eval_as_not_promoted(t
     assert record["close_extra"]["metric_result"]["status"] == "METRIC_COMPLETED"
 
 
+def test_metric_completed_requires_explicit_research_record_when_research_id_is_given(tmp_path: Path) -> None:
+    runtime = tmp_path / "runtime"
+    task_id = "metric_completed_missing_explicit_record"
+    other_round_dir = runtime / "task_knowledge" / task_id / "rounds" / "Research001"
+    other_round_dir.mkdir(parents=True)
+    (other_round_dir / "round.json").write_text(
+        json.dumps(
+            {
+                "round_id": 1,
+                "research_index": 1,
+                "research_id": "Research001",
+                "round_scope": "research",
+                "counts_toward_research_budget": True,
+                "status": "build_succeeded",
+                "phase": "experiment",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    try:
+        record_metric_completed_result(
+            base_dir=str(runtime),
+            task_id=task_id,
+            research_id="Research002",
+            round_id=2,
+            metrics={"mse_norm": 0.3142},
+            objective_metric="mse_norm",
+            metric_result={"status": "METRIC_COMPLETED"},
+        )
+    except RuntimeError as exc:
+        assert str(exc) == "missing explicit research round record: Research002"
+    else:
+        raise AssertionError("record_metric_completed_result should require the explicit research round record")
+
+
 def test_metric_completed_without_objective_metric_enters_repair_failure(tmp_path: Path) -> None:
     repo, base_snapshot_id = _repo(tmp_path)
     runtime = tmp_path / "runtime"

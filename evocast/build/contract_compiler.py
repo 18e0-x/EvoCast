@@ -253,6 +253,100 @@ def active_source_ref(*, base_dir: str, task_id: str, repo_dir: str | Path | Non
     return active, source_ref
 
 
+def _checkout_from_snapshot_root(snapshot_source_root: str) -> str:
+    root = Path(str(snapshot_source_root or "").strip())
+    if not root:
+        return ""
+    resolved = root.resolve()
+    return str(resolved.parent) if resolved.name == "ts_benchmark" else str(resolved)
+
+
+def _resolve_source_checkout_from_binding(
+    *,
+    baseline: dict[str, Any],
+    source_binding: dict[str, Any],
+    repo_dir: str | Path | None = None,
+) -> str:
+    root = Path(repo_dir or repo_root()).resolve()
+    entry_file = _norm(str(source_binding.get("entry_file") or baseline.get("source_file") or ""))
+    if entry_file and (root / entry_file).is_file():
+        return str(root)
+    source_files = [_norm(str(item)) for item in list(source_binding.get("source_files") or [])]
+    for rel_path in source_files:
+        if rel_path and (root / rel_path).is_file():
+            return str(root)
+    return ""
+
+
+def baseline_diagnosis_source_ref(
+    *,
+    base_dir: str,
+    task_id: str,
+    baseline: dict[str, Any],
+    repo_dir: str | Path | None = None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    state = load_runtime_state(base_dir, task_id, auto_migrate=False)
+    selected_baseline = dict(baseline or _candidate_payload(state.baseline) or {})
+    if not selected_baseline:
+        raise RuntimeError("baseline diagnosis requires a selected baseline with formal source authority")
+
+    explicit = dict(selected_baseline.get("source_ref") or {})
+    baseline_snapshot = dict(selected_baseline.get("baseline_snapshot") or {})
+    source_binding = _load_source_binding(selected_baseline, repo_dir)
+    if not _has_verified_source_binding(source_binding) and explicit.get("source_binding"):
+        source_binding = _canonical_source_binding(dict(explicit.get("source_binding") or {}), repo_dir)
+
+    explicit_checkout = str(explicit.get("source_checkout") or selected_baseline.get("source_checkout") or "").strip()
+    snapshot_checkout = _checkout_from_snapshot_root(str(baseline_snapshot.get("source_root") or ""))
+    binding_checkout = _resolve_source_checkout_from_binding(
+        baseline=selected_baseline,
+        source_binding=source_binding,
+        repo_dir=repo_dir,
+    )
+    source_checkout = explicit_checkout or snapshot_checkout or binding_checkout
+    if not source_checkout:
+        raise RuntimeError(
+            "baseline diagnosis requires formal baseline source authority; "
+            "expected selected baseline source_ref/source_checkout, baseline_snapshot, or verified source_binding"
+        )
+    checkout_root = Path(source_checkout).resolve()
+    if not checkout_root.is_dir():
+        raise RuntimeError(f"baseline diagnosis source checkout does not exist: {checkout_root}")
+
+    manifest = source_manifest(checkout_root)
+    snapshot_id = str(
+        explicit.get("candidate_snapshot_id")
+        or explicit.get("base_snapshot_id")
+        or baseline_snapshot.get("snapshot_id")
+        or manifest.get("snapshot_id")
+        or ""
+    ).strip()
+    if not snapshot_id:
+        raise RuntimeError("baseline diagnosis source snapshot id could not be resolved")
+
+    source_ref = {
+        **explicit,
+        "kind": "source_snapshot",
+        "candidate_snapshot_id": snapshot_id,
+        "base_snapshot_id": str(explicit.get("base_snapshot_id") or baseline_snapshot.get("snapshot_id") or snapshot_id),
+        "source_checkout": str(checkout_root),
+        "source_manifest_hash": str(manifest.get("manifest_hash") or ""),
+        "candidate_id": str(selected_baseline.get("candidate_id") or ""),
+    }
+    if baseline_snapshot:
+        source_ref["baseline_snapshot"] = baseline_snapshot
+    if _has_verified_source_binding(source_binding):
+        source_ref["source_binding"] = source_binding
+    model_binding_ref = str(
+        explicit.get("model_binding_ref")
+        or selected_baseline.get("model_binding_ref")
+        or ""
+    ).strip()
+    if model_binding_ref:
+        source_ref["model_binding_ref"] = model_binding_ref
+    return selected_baseline, source_ref
+
+
 def _model_source_file(import_path: str, model_name: str, repo_dir: str | Path | None = None) -> str:
     root = Path(repo_dir or repo_root()).resolve()
     candidates: list[str] = []
@@ -542,8 +636,12 @@ def build_ablation_contract(
     timeout_seconds: int = 900,
 ) -> BuildContract:
     rid = next_ablation_id(base_dir, task_id)
-    active, source_ref = active_source_ref(base_dir=base_dir, task_id=task_id, repo_dir=repo_dir)
-    baseline = dict(active or baseline or {})
+    baseline, source_ref = baseline_diagnosis_source_ref(
+        base_dir=base_dir,
+        task_id=task_id,
+        baseline=baseline,
+        repo_dir=repo_dir,
+    )
     target_id = str(target.get("target_id") or target.get("ablation_id") or rid)
     mechanism = str(target.get("mechanism_name") or target.get("mechanism_id") or target_id)
     model_name = str(baseline.get("display_name") or baseline.get("best_model_name") or baseline.get("model_name") or "baseline")
