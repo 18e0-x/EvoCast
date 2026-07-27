@@ -1,0 +1,51 @@
+# baseline 最优参数正式配置。
+# 命中后，它就是该任务语义下该 baseline 模型的唯一权威参数来源。
+# baseline、ablation、research、seed_eval 都继承这里，不再退回统一 experiment 训练策略推导。
+
+profiles:
+  - profile_id: air_quality_mm_amplifier_best
+    description: 空气质量 MM 任务下 Amplifier 的已验证最优参数
+    match:
+      dataset_basename: air_quality_ready.csv
+      task_mode: MM
+      seq_len: 168
+      horizon: 24
+      model_key: Amplifier
+    model_hyper_params:
+      SCI: 0
+      batch_size: 32
+      hidden_size: 128
+      horizon: 24
+      lr: 0.06
+      norm: true
+      seq_len: 168
+      pred_len: 24
+      label_len: 84
+      patience: 3
+      num_epochs: 10
+
+  - profile_id: air_quality_mm_timekan_best
+    description: 空气质量 MM 任务下 TimeKAN 的已验证最优参数
+    match:
+      dataset_basename: air_quality_ready.csv
+      task_mode: MM
+      seq_len: 168
+      horizon: 24
+      model_key: TimeKAN
+    model_hyper_params:
+      batch_size: 32
+      begin_order: 1
+      d_ff: 32
+      d_model: 16
+      down_sampling_layers: 2
+      down_sampling_window: 2
+      e_layers: 2
+      horizon: 24
+      pred_len: 24
+      label_len: 84
+      lr: 0.003
+      norm: true
+      num_epochs: 10
+      patience: 3
+      seq_len: 168
+      top_k: 5

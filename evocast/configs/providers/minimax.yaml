@@ -1,0 +1,127 @@
+# ── EvoCast MiniMax API Configuration ──────────────────────────────────
+# Secrets should NOT be stored here. Set MINIMAX_API_KEY in environment.
+
+provider: "minimax"
+base_url: "https://api.minimaxi.com/v1"
+chat_completions_path: "/chat/completions"
+api_key_env: "MINIMAX_API_KEY"
+token_param: "max_completion_tokens"
+minimax_reasoning_split: true
+
+context_window: 1000000
+
+# A task has exactly one LLM model.  Roles may vary in prompt, temperature,
+# token budget, or timeout, but must never silently route to another model.
+models: "MiniMax-M3"
+
+thinking:
+  default:            true
+  judge:              false
+  read:               false
+  argue:              false
+  synthesis:          false
+  proposal:           false
+  planner:            false
+  implementer:        false
+  implementer_workspace: false
+  round_metadata:     false
+  baseline_ablation_planner: false
+  baseline_ablation_codegen: false
+  build_coding_agent: false
+  round_review:       false
+  reviewer:           false
+  module_partition:   false
+  intent:             false
+  active_path_ablation_target_plan: false
+  review_report:       false
+  review_report_round: false
+
+effort:
+  default:            "medium"
+  # Builder is a short, resumable tool session.  Long hidden deliberation
+  # belongs in proposal design; implementation must produce the next source
+  # read or verified edit promptly.
+  implementer:        "medium"
+  implementer_workspace: "medium"
+  planner:            "medium"
+  proposal:           "medium"
+  baseline_ablation_codegen: "high"
+  build_coding_agent: "medium"
+
+temperature:
+  default:            0.1
+  synthesis:          0.3
+  read:               0.1
+  baseline_ablation_planner: 0.1
+  baseline_ablation_codegen: 0.1
+  proposal:           0.3
+  argue:              0.1
+  round_review:       0.1
+  planner:            0.25
+  implementer:        0.1
+  implementer_workspace: 0.1
+  build_coding_agent: 0.1
+  judge:              0.1
+  reviewer:           0.1
+  module_partition:   0.1
+  probe_design:       0.1
+  intent:             0.1
+
+max_tokens:
+  default:            20000
+  read:               16384
+  baseline_ablation_planner: 24000
+  baseline_ablation_codegen: 28000
+  proposal:           24000
+  argue:              20000
+  round_review:       16384
+  planner:            28000
+  implementer:        12000
+  implementer_workspace: 12000
+  build_coding_agent: 12000
+  round_metadata:     3200
+  synthesis:          24000
+  module_partition:   20000
+  intent:             8192
+  judge:              16384
+  reviewer:           16384
+  active_path_ablation_target_plan: 28000
+  review_report:       3600
+  review_report_round: 1200
+
+# Builder turns are bounded so a stuck implementation response cannot consume
+# minutes silently. Other research roles retain their normal API budget.
+timeout_sec:
+  default: 360
+  build_coding_agent: 180
+  round_metadata: 180
+  review_report: 180
+  review_report_round: 120
+stream: true
+max_retries:
+  default: 3
+  build_coding_agent: 1
+  round_metadata: 1
+  review_report: 1
+  review_report_round: 1
+
+# Pricing reference: https://platform.minimax.io/docs/guides/pricing-paygo
+# MiniMax-M3, standard service tier, USD per 1M tokens.
+pricing:
+  currency: "USD"
+  unit: "per_1m_tokens"
+  service_tier: "standard"
+  source: "https://platform.minimax.io/docs/guides/pricing-paygo"
+  source_checked_at: "2026-07-14"
+  tiers:
+    - max_input_tokens: 512000
+      input: 0.30
+      output: 1.20
+      cache_read: 0.06
+    - max_input_tokens:
+      input: 0.60
+      output: 2.40
+      cache_read: 0.12
+  service_tier_multiplier:
+    standard: 1.0
+    priority: 1.5

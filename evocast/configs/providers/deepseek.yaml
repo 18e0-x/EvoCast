@@ -1,0 +1,113 @@
+# ── EvoCast DeepSeek API Configuration ─────────────────────────────────
+# Secrets should NOT be stored here.  Set DEEPSEEK_API_KEY env var.
+#
+# Per-stage overrides: models, thinking, effort, temperature, max_tokens
+# are all stage-aware.  Each key accepts either a flat value (applied to
+# all stages) or a dict mapping stage → value.  Unmapped stages fall back
+# to the "default" key.
+# ────────────────────────────────────────────────────────────────────────
+
+provider: "deepseek"
+base_url: "https://api.deepseek.com"
+api_key_env: "DEEPSEEK_API_KEY"
+
+# ── Model selection ─────────────────────────────────────────────────────
+# deepseek-v4-flash: fast/cheap model, 128K ctx, JSON mode
+# deepseek-v4-pro is disabled in this repository and will be rewritten to flash
+# deepseek-chat / deepseek-reasoner are DEPRECATED — removed 2026-07-24
+models: "deepseek-v4-flash"
+
+# ── Thinking mode ───────────────────────────────────────────────────────
+# On:  model reasons before answering (hidden chain-of-thought).
+# Off: direct answer, lower latency + token cost.
+thinking:
+  default:            true    # most stages benefit from reasoning
+  judge:              false   # scoring is rule-based, no chain needed
+  read:               false
+  argue:              false
+  round_review:       false
+  reviewer:           false   # interpreting pre-parsed metrics
+  module_partition:   false   # pattern recognition (find nn.Module subclasses)
+  intent:             false   # structured extraction, no reasoning needed
+  round_metadata:     false   # 研究轮次记录信息，要求直接输出 JSON
+  active_path_ablation_target_plan: false
+
+# ── Reasoning effort (only when thinking: true) ─────────────────────────
+# high: standard depth.  max: deepest reasoning.
+# low / medium are mapped to "high" by the DeepSeek API.
+effort:
+  default:            "high"
+  implementer:        "high"
+  implementer_workspace: "high"
+
+# ── Temperature ─────────────────────────────────────────────────────────
+# Per-stage.  Higher = more diversity (synthesis), lower = deterministic.
+temperature:
+  default:            0.1
+  synthesis:          0.2     # need idea diversity across rounds
+  read:               0.0
+  baseline_ablation_planner: 0.1
+  baseline_ablation_codegen: 0.1
+  proposal:           0.2
+  argue:              0.0
+  round_review:       0.0
+  planner:            0.2     # need some design flexibility
+  implementer:        0.1     # code must be correct
+  implementer_workspace: 0.1
+  judge:              0.0     # deterministic selection
+  reviewer:           0.1
+  module_partition:   0.1
+  probe_design:       0.1
+  intent:             0.0     # deterministic extraction
+
+# ── Max output tokens ───────────────────────────────────────────────────
+# DeepSeek v4-flash max output: 8K tokens in pricing notes below.
+# Typical variant code can still request larger logical caps here; server-side limits apply.
+max_tokens:
+  default:            24000
+  read:               16384
+  baseline_ablation_planner: 32768
+  baseline_ablation_codegen: 32768
+  proposal:           32768
+  argue:              24000
+  round_review:       16384
+  planner:            32768   # structured JSON plan (generous margin)
+  implementer:        48000   # full Python model variant code
+  implementer_workspace: 48000
+  synthesis:          24000
+  module_partition:   24000
+  intent:             8192    # small structured JSON output
+  round_metadata:     3200
+  judge:              16384
+  reviewer:           16384
+  active_path_ablation_target_plan: 28000
+
+# ── Request settings ────────────────────────────────────────────────────
+timeout_sec:
+  default: 1800      # per-request timeout (30 min)
+  round_metadata: 180
+stream:      true      # stream JSON tasks so long LLM stages show progress in console
+max_retries:
+  default: 3
+  round_metadata: 1
+
+# ── Pricing reference (USD per 1M tokens) ───────────────────────────────
+# Source: https://api-docs.deepseek.com/quick_start/pricing
+pricing:
+  currency: "USD"
+  unit: "per_1m_tokens"
+  source: "https://api-docs.deepseek.com/quick_start/pricing"
+  source_checked_at: "2026-07-19"
+  models:
+    deepseek-v4-flash:
+      tiers:
+        - max_input_tokens:
+          input: 0.14
+          output: 0.28
+          cache_read: 0.0028
+    deepseek-v4-pro:
+      tiers:
+        - max_input_tokens:
+          input: 0.435
+          output: 0.87
+          cache_read: 0.003625

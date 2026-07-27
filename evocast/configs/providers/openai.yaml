@@ -1,0 +1,122 @@
+# ── EvoCast OpenAI API Configuration ───────────────────────────────────
+# Secrets should NOT be stored here. Set OPENAI_API_KEY in environment.
+
+provider: "openai"
+base_url: "https://api.openai.com/v1"
+chat_completions_path: "/chat/completions"
+api_key_env: "OPENAI_API_KEY"
+token_param: "max_completion_tokens"
+
+models:
+  default:           "gpt-5.5"
+  synthesis:         "gpt-5.5"
+  judge:             "gpt-5.4-mini"
+  read:              "gpt-5.4-mini"
+  baseline_ablation_planner: "gpt-5.5"
+  baseline_ablation_codegen: "gpt-5.5"
+  proposal:          "gpt-5.5"
+  argue:             "gpt-5.4-mini"
+  round_review:      "gpt-5.4-mini"
+  planner:           "gpt-5.5"
+  implementer:       "gpt-5.5"
+  implementer_workspace: "gpt-5.5"
+  reviewer:          "gpt-5.4-mini"
+  module_partition:  "gpt-5.4-mini"
+  probe_design:      "gpt-5.4-mini"
+  intent:            "gpt-5.4-mini"
+  round_metadata:    "gpt-5.4-mini"
+
+
+thinking:
+  default:            true
+  judge:              false
+  read:               false
+  argue:              false
+  round_review:       false
+  reviewer:           false
+  module_partition:   false
+  intent:             false
+  round_metadata:     false
+  active_path_ablation_target_plan: false
+
+effort:
+  default:            "medium"
+  implementer:        "high"
+  implementer_workspace: "high"
+  planner:            "medium"
+  proposal:           "medium"
+  baseline_ablation_codegen: "high"
+
+temperature:
+  default:            0.1
+  synthesis:          0.2
+  read:               0.0
+  baseline_ablation_planner: 0.1
+  baseline_ablation_codegen: 0.1
+  proposal:           0.2
+  argue:              0.0
+  round_review:       0.0
+  planner:            0.15
+  implementer:        0.1
+  implementer_workspace: 0.1
+  judge:              0.0
+  reviewer:           0.1
+  module_partition:   0.1
+  probe_design:       0.1
+  intent:             0.0
+
+max_tokens:
+  default:            20000
+  read:               16384
+  baseline_ablation_planner: 24000
+  baseline_ablation_codegen: 32000
+  proposal:           24000
+  argue:              20000
+  round_review:       16384
+  planner:            28000
+  implementer:        44000
+  implementer_workspace: 44000
+  synthesis:          24000
+  module_partition:   20000
+  intent:             8192
+  round_metadata:     3200
+  judge:              16384
+  reviewer:           16384
+  active_path_ablation_target_plan: 28000
+
+timeout_sec:
+  default: 1800
+  round_metadata: 180
+stream: true
+max_retries:
+  default: 3
+  round_metadata: 1
+
+# Pricing must be kept machine-readable before cost can be reported.
+# Source: https://openai.com/api/pricing/
+# Add model entries here when the exact deployed model prices are confirmed.
+pricing:
+  currency: "USD"
+  unit: "per_1m_tokens"
+  service_tier: "standard"
+  source: "https://developers.openai.com/api/docs/pricing"
+  source_checked_at: "2026-07-19"
+  models:
+    gpt-5.5:
+      tiers:
+        - max_input_tokens:
+          input: 5.00
+          output: 30.00
+          cache_read: 0.50
+    gpt-5.4:
+      tiers:
+        - max_input_tokens:
+          input: 2.50
+          output: 15.00
+          cache_read: 0.25
+    gpt-5.4-mini:
+      tiers:
+        - max_input_tokens:
+          input: 0.75
+          output: 4.50
+          cache_read: 0.075

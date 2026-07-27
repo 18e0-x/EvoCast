@@ -1,0 +1,107 @@
+# ── EvoCast DeepSeek API — TEST / INTEGRATION MODE ──────────────────────
+# 目标：
+# 1. 保留和生产配置相同的 stage 架构
+# 2. 降低总体成本，但不要把上下文窗口和工具预算压得过短
+# 3. 适合作为真实联调、轻量实验、接口验收时的默认测试配置
+# ──────────────────────────────────────────────────────────────────────────
+
+provider: "deepseek"
+base_url: "https://api.deepseek.com"
+api_key_env: "DEEPSEEK_API_KEY"
+
+# ── Model selection ───────────────────────────────────────────────────────
+# 测试模式统一使用 flash，保证“测试配置 = 全 flash”语义明确，
+# 避免某些 stage 悄悄保留 pro 造成成本和行为偏差。
+models: "deepseek-v4-flash"
+
+# ── Thinking mode ─────────────────────────────────────────────────────────
+thinking:
+  default:            true
+  judge:              false
+  read:               false
+  argue:              false
+  round_review:       false
+  reviewer:           false
+  module_partition:   false
+  intent:             false
+  round_metadata:     false
+  active_path_ablation_target_plan: false
+
+# ── Reasoning effort ──────────────────────────────────────────────────────
+effort:
+  default:            "high"
+  implementer:        "max"
+  implementer_workspace: "max"
+  planner:            "high"
+  proposal:           "high"
+  baseline_ablation_codegen: "high"
+
+# ── Temperature ───────────────────────────────────────────────────────────
+temperature:
+  default:            0.1
+  synthesis:          0.2
+  read:               0.0
+  baseline_ablation_planner: 0.1
+  baseline_ablation_codegen: 0.1
+  proposal:           0.2
+  argue:              0.0
+  round_review:       0.0
+  planner:            0.15
+  implementer:        0.1
+  implementer_workspace: 0.1
+  judge:              0.0
+  reviewer:           0.1
+  module_partition:   0.1
+  probe_design:       0.1
+  intent:             0.0
+
+# ── Max output tokens ─────────────────────────────────────────────────────
+# 测试模式不再把上下文/输出压得过短，避免复杂代码阶段被截断。
+max_tokens:
+  default:            20000
+  read:               16384
+  baseline_ablation_planner: 24000
+  baseline_ablation_codegen: 28000
+  proposal:           24000
+  argue:              20000
+  round_review:       16384
+  planner:            28000
+  implementer:        44000
+  implementer_workspace: 44000
+  synthesis:          24000
+  module_partition:   20000
+  intent:             8192
+  round_metadata:     3200
+  judge:              16384
+  reviewer:           16384
+  active_path_ablation_target_plan: 28000
+
+# ── Request settings ──────────────────────────────────────────────────────
+timeout_sec:
+  default: 1800
+  round_metadata: 180
+stream:      true
+max_retries:
+  default: 3
+  round_metadata: 1
+
+# ── Pricing reference (USD per 1M tokens) ───────────────────────────────
+# Source: https://api-docs.deepseek.com/quick_start/pricing
+pricing:
+  currency: "USD"
+  unit: "per_1m_tokens"
+  source: "https://api-docs.deepseek.com/quick_start/pricing"
+  source_checked_at: "2026-07-19"
+  models:
+    deepseek-v4-flash:
+      tiers:
+        - max_input_tokens:
+          input: 0.14
+          output: 0.28
+          cache_read: 0.0028
+    deepseek-v4-pro:
+      tiers:
+        - max_input_tokens:
+          input: 0.435
+          output: 0.87
+          cache_read: 0.003625

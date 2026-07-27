@@ -1,0 +1,51 @@
+# EvoCast Model Registry Overrides
+# Manual model specs for models that auto-discovery cannot fully infer,
+# or to override default hyperparameters and budget profiles.
+#
+# Each override is keyed by model_key and merged on top of
+# auto-discovered specs.
+
+models:
+  PatchMLP:
+    # PatchMLP uses a multi-scale patch embedding design.  Its baseline
+    # compatibility layer may provide several patch lengths, so list[int] is
+    # valid for this model even though many other patch models require one int.
+    hparam_schema:
+      patch_len:
+        type: int_list
+        min_length: 1
+
+  # Example: override default hyperparams for a known model
+  # DLinear:
+  #   default_hyper_params:
+  #     d_model: 256
+  #     batch_size: 64
+
+  # Example: add a model not auto-discovered
+  # MyCustomModel:
+  #   import_path: ts_benchmark.baselines.custom.MyModel
+  #   adapter: transformer_adapter
+  #   family: mlp
+  #   supports_univariate: true
+  #   supports_multivariate: false
+  #   default_hyper_params:
+  #     d_model: 256
+  #     num_epochs: 10
+  #   default_hyper_params:
+  #     # 训练规格不要写在这里；统一改 configs/policies/experiment.yaml。
+  #   fit_points:
+  #     - normalization
+  #     - output_head
+  #     - feedforward
+
+# Additional import paths to scan for models
+extra_import_paths: []
+
+# Model families that should be excluded entirely
+exclude_families: []
+
+# Specific models to exclude
+exclude_models: []
+
+# Model aliases (alternative names for the same model)
+aliases: {}

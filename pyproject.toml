@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evocast"
+dynamic = ["version"]
+description = "Automated research agent for time-series forecasting models"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[project.scripts]
+evocast = "evocast.__main__:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "evocast.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["evocast*", "ts_benchmark*", "characteristics_extractor*"]
+exclude = ["tests*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+evocast = [
+    "configs/**/*.md",
+    "configs/**/*.yaml",
+    "configs/**/*.yml",
+]
+ts_benchmark = [
+    "baselines/tag_csv/*.csv",
+]
+characteristics_extractor = [
+    "DemoDatasets/*.csv",
+    "Readme_*.md",
+]

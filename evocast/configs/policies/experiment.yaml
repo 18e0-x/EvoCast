@@ -1,0 +1,75 @@
+# EvoCast 统一实验规格文件。
+# EvoCast 目前只有一个正式实验规格：unified。
+# 不再暴露 quick / standard / full 这类预算名；运行入口只接受 unified 或 seed_eval。
+
+training:
+  smoke_test:
+    # 变体写出后必须先跑这个 smoke。目标是尽早发现 import/forward/train/metric 错误。
+    # build-mode: 训练只执行 1 个 batch / 1 个 epoch。
+    num_epochs: 1
+    # batch_size=1 表示 batch 尺寸为 1。
+    batch_size: 1
+    # max_train_batches=1 表示训练循环只取 1 个 batch；由 deep_forecasting_model_base 支持。
+    max_train_batches: 1
+    # 验证也只执行 1 个 batch；不跳过 validation。
+    max_val_batches: 1
+    # patience 在 1 epoch smoke 中基本不会触发，但保留以统一配置。
+    patience: 1
+    # 统一学习率，禁止 agent 在变体里自行改。
+    lr: 0.0001
+  experiment:
+    # 正式单 seed 实验规格。所有正式 run_experiment 都使用这里。
+    num_epochs: 10
+    batch_size: 32
+    patience: 3
+    lr: 0.0001
+
+baseline_search:
+  # baseline 搜索只保留一条正式规格，不随预算分叉。
+  # candidate_count 表示本轮 baseline 搜索实际运行的候选模型数量上限。
+  candidate_count: 30
+  # registry_pool_size 表示进入 deterministic curator 的最大候选池大小。
+  registry_pool_size: 52
+  # initial_seeds 是人工指定优先测试的模型 key 列表。
+  initial_seeds: []
+  # preferred_families 控制自动模式优先覆盖的模型族顺序；列表应覆盖当前可运行 registry 的全部 family。
+  # 当前 family：linear, transformer, mlp, cnn, gnn, others。
+  preferred_families: [linear, transformer, mlp, cnn, gnn, others]
+
+baseline_diagnosis:
+  # 机制诊断阶段最多执行多少个 baseline 消融目标。
+  max_ablation_targets: 3
+  # 每个 baseline 消融 exact-edit 构建失败后的修复次数。
+  # 例如 old_string_not_unique / JSON 格式错误 / apply-check 失败都应进入该修复预算。
+  ablation_repair_attempts: 3
+  # 消融效果判定阈值。移除机制后相对退化超过该值视为 essential；
+  # 移除机制后相对改善超过该值视为 harmful_or_redundant_candidate。
+  ablation_effect_threshold: 0.01
+
+seed_eval:
+  # 只要涉及更新 baseline/current_best，都必须走 seed_eval。
+  # seed 列表在这里显式指定；baseline 参考和候选 seed_eval 使用同一组 seed。
+  seeds: [2026, 2027, 2028]
+
+guardrails:
+  # agent 和变体禁止改这些训练超参，训练规格由本文件统一管理。
+  training_blacklist:
+    - lr
+    - learning_rate
+    - batch_size
+    - num_epochs
+    - epoch
+    - epochs
+    - patience
+    - optimizer
+    - scheduler
+    - warmup
+    - warmup_epochs
+    - warmup_steps
+    - weight_decay
+    - grad_clip
+    - gradient_clipping
+    - label_smoothing
+  # loss 可以作为模型语义的一部分保留。
+  training_allowlist:
+    - loss

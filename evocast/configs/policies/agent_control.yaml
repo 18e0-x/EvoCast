@@ -1,0 +1,65 @@
+# EvoCast agent 控制策略文件。
+# 本文件是 agent 执行控制、质量门控、晋升策略、build-mode 控制和超时限制的唯一来源。
+
+round_control:
+  # 旧 round 状态机和 baseline 消融构建允许的最大 repair 次数。
+  # Research BuildContract 主链已改为只使用 VariantForge max_attempts，不再读取本字段套外层 repair。
+  max_repair_attempts: 6
+  # 同一个 failure_signature 在同一个 round 内重复达到该次数时，认为修复卡死并终止当前 round。
+  repeated_failure_signature_limit: 3
+  # 变体静态验证关键错误连续达到该次数时，终止当前 round。
+  critical_variant_write_limit: 3
+
+execution_timeout:
+  # Research / candidate 正式 metric 的单次 pipeline 硬超时秒数。
+  metric_pipeline: 1500
+  # seed_eval 中每一个 seed 的单次 pipeline 硬超时秒数，不是 3 seed 总耗时。
+  seed_eval_pipeline: 1500
+  # build-mode baseline 搜索中单个模型的 pipeline 超时秒数上限。
+  build_mode_baseline_pipeline: 900
+
+runtime_validation:
+  # 候选模型的 CUDA 前向、反向和行为探针都在独立 Python 进程中执行。
+  # 超时或 CUDA device-side assert 只终止 worker，不污染 agent 主进程。
+  timeout_sec: 120
+  cuda_launch_blocking: true
+
+build_mode:
+  # build mode 保持 baseline 自动寻优的候选池、排序和选择逻辑与正式模式一致。
+  # 唯一缩减的是每个候选的训练/测试预算。
+  force_smoke_experiment: true
+  # build-mode 测试集只执行多少个滚动推理窗口。
+  num_rollings: 1
+
+gate:
+  # 单 seed 候选相对当前基线的最小有效改善幅度。
+  min_relative_improvement: 0.005
+  # 触发 seed_eval 的最小单 seed 改善幅度。
+  min_seed_eval_relative_improvement: 0.005
+  # 多 seed 评估后的相对改善采纳阈值不再单独配置，统一复用 min_relative_improvement。
+  # 多 seed 评估后的最小绝对改善。
+  seed_eval_min_absolute_improvement: 0.0001
+
+promotion:
+  # innovation 变体：单 seed 只能进入 needs_seed_eval，必须 seed_eval accept 后才能 current_best。
+  require_seed_eval_for_current_best: true
+  # baseline 消融：禁止单 seed 直接改 baseline；若单 seed 更好，先进入 seed_eval。
+  require_seed_eval_for_baseline_update: true
+  # control fallback 不是科学消融，不允许晋升 baseline。
+  allow_control_fallback_promotion: false
+
+# start_research_round proposal 连续同类拒绝达到该次数时，触发 proposal fuse。
+max_consecutive_proposal_rejections: 3
+
+context:
+  # 默认使用实验验证过的紧上下文策略：
+  # - proposal/review 阶段只保留必要结构、消融、历史摘要
+  # - builder 阶段保留最小实现上下文
+  # 环境变量 EVOCAST_CONTEXT_STRATEGY 仍可临时覆盖。
+  strategy: proposal_compact_builder_minimal
+
+module_validity:
+  # audit_only: manifest/组件探针继续产出证据，但不阻断 smoke/benchmark/metric。
+  # blocking: 严格模式，manifest/组件探针失败会阻断并进入 repair。
+  # disabled: 调试模式，完全跳过 module validity 探针。
+  mode: audit_only
