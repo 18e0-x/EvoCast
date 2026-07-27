@@ -1727,7 +1727,7 @@ def build_intent_from_answers(args: argparse.Namespace) -> Dict[str, Any]:
         BASELINE_STRATEGY_CHOICES,
         "--baseline-strategy",
         descriptions=descriptions_for("baseline_strategy", lang),
-    recommended="auto",
+    recommended="manual",
         lang=lang,
     ) if args.yes else choose_described_option(
         "Select baseline strategy" if english else "请选择 baseline 策略",
@@ -1833,7 +1833,7 @@ def print_summary(task_id: str, intent: Dict[str, Any], budget: str, max_rounds:
         print(f"Evaluation:     {intent['strategy_name']}")
         print(f"Objective:      {intent['objective_metric']}")
         print(f"Budget:         {budget}")
-        print(f"Baseline mode:  {intent.get('baseline_strategy', 'auto')}")
+        print(f"Baseline mode:  {intent.get('baseline_strategy', 'manual')}")
     else:
         print(f"任务 ID：        {task_id}")
         print(f"语言：           中文")
@@ -1847,7 +1847,7 @@ def print_summary(task_id: str, intent: Dict[str, Any], budget: str, max_rounds:
         print(f"评估方式：       {intent['strategy_name']}")
         print(f"优化指标：       {intent['objective_metric']} - {OBJECTIVE_DESCRIPTIONS.get(intent['objective_metric'], '')}")
         print(f"实验规格：       {budget}")
-        print(f"baseline 策略：  {intent.get('baseline_strategy', 'auto')} - {BASELINE_STRATEGY_DESCRIPTIONS.get(intent.get('baseline_strategy', 'auto'), '')}")
+        print(f"baseline 策略：  {intent.get('baseline_strategy', 'manual')} - {BASELINE_STRATEGY_DESCRIPTIONS.get(intent.get('baseline_strategy', 'manual'), '')}")
     if intent.get("baseline_models"):
         print((f"Baseline:       {', '.join(intent.get('baseline_models') or [])}") if en else f"指定 baseline：  {', '.join(intent.get('baseline_models') or [])}")
     print((f"Build mode:     {'yes' if intent.get('build_mode') else 'no'}") if en else f"Build mode：    {'是' if intent.get('build_mode') else '否'}")
@@ -1988,7 +1988,7 @@ def validate_global_args(args: argparse.Namespace) -> None:
         BASELINE_STRATEGY_CHOICES,
         "--baseline-strategy",
         descriptions=descriptions_for("baseline_strategy", lang),
-        recommended="auto",
+        recommended="manual",
         lang=lang,
     )
     require_choice(
@@ -2162,7 +2162,7 @@ def run_wizard(args: argparse.Namespace) -> Dict[str, Any]:
             objective_metric=objective_metric,
             budget=budget,
             metric_direction=args.metric_direction,
-            baseline_strategy=str(intent.get("baseline_strategy") or "auto"),
+            baseline_strategy=str(intent.get("baseline_strategy") or "manual"),
             baseline_models=list(intent.get("baseline_models") or []),
             seed=args.seed,
             dataset_diagnosis_mode=str(intent.get("dataset_diagnosis_mode") or "required"),
@@ -2285,7 +2285,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--budget", default=DEFAULT_BUDGET, help=argparse.SUPPRESS)
     parser.add_argument(
         "--baseline-strategy",
-        default="auto",
+        default="manual",
         choices=BASELINE_STRATEGY_CHOICES,
         help="baseline 前置策略：auto 自动搜索，manual 指定模型。研究任务必须先建立 baseline。",
     )

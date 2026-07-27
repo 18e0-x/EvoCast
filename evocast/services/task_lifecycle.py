@@ -44,7 +44,7 @@ def initialize_task(
         max_rounds=max_rounds,
         max_debug_depth=max_debug_depth,
         api_config=api_config_name,
-        baseline_strategy=str(intent.get("baseline_strategy") or "auto"),
+        baseline_strategy=str(intent.get("baseline_strategy") or "manual"),
         baseline_models=list(intent.get("baseline_models") or []),
         build_mode=bool(intent.get("build_mode")),
         dataset_diagnosis_mode=str(intent.get("dataset_diagnosis_mode") or "required"),

@@ -31,7 +31,7 @@ def init_task(
     max_rounds: int = 20,
     max_debug_depth: int = 3,
     api_config: str = "",
-    baseline_strategy: str = "auto",
+    baseline_strategy: str = "manual",
     baseline_models: list[str] | None = None,
     build_mode: bool = False,
     dataset_diagnosis_mode: str = "required",
@@ -54,7 +54,7 @@ def init_task(
     diagnosis_policy = baseline_diagnosis_policy(base_dir)
     if baseline_diagnosis_max_ablation_targets is None:
         baseline_diagnosis_max_ablation_targets = int(diagnosis_policy.get("max_ablation_targets", 3))
-    normalized_baseline_strategy = str(baseline_strategy or "auto").strip().lower()
+    normalized_baseline_strategy = str(baseline_strategy or "manual").strip().lower()
     if normalized_baseline_strategy not in {"auto", "manual"}:
         raise ValueError(
             "baseline_strategy must be 'auto' or 'manual'; research tasks cannot skip baseline establishment."

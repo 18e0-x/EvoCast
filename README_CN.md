@@ -101,11 +101,11 @@ source .venv/bin/activate
 ## Requirements 📋
 
 - Python `>=3.10`
-- 兼容 PyTorch 的运行环境
+- 支持 CUDA 的 NVIDIA GPU 运行环境
 - 本地 forecasting 数据集 CSV
 - 运行 LLM research workflow 所需的 provider API key
 
-`requirements.txt` 安装 EvoCast 的快速启动环境。`requirements-full.txt` 安装仓库完整环境，包含 dashboard、Darts、Merlion、Mamba、并行执行和开发工具。
+`requirements.txt` 在 PyTorch 安装完成后安装 EvoCast 的快速启动环境。`requirements-full.txt` 在 PyTorch 安装完成后安装仓库完整环境，包含 dashboard、Darts、Merlion、Mamba、并行执行和开发工具。
 
 ## Installation 📦
 
@@ -113,12 +113,14 @@ source .venv/bin/activate
 
 ```bash
 python -m pip install --upgrade pip
+python -m pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu128
 python -m pip install -r requirements.txt
 ```
 
 需要完整仓库环境时，执行：
 
 ```bash
+python -m pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/cu128
 python -m pip install -r requirements-full.txt
 ```
 
