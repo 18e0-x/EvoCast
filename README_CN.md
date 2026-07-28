@@ -83,8 +83,8 @@ python -m evocast --dataset dataset/forecasting/ETTh1.csv --time-col date
 在仓库根目录创建并激活干净的 Python 环境：
 
 ```bash
-git clone <your-repo-url>
-cd <repository-root>
+git clone https://github.com/18e0-x/EvoCast.git
+cd EvoCast
 python -m venv .venv
 ```
 

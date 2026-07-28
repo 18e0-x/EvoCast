@@ -82,8 +82,8 @@ python -m evocast --dataset dataset/forecasting/ETTh1.csv --time-col date
 Create and activate a clean Python environment from the repository root:
 
 ```bash
-git clone <your-repo-url>
-cd <repository-root>
+git clone https://github.com/18e0-x/EvoCast.git
+cd EvoCast
 python -m venv .venv
 ```
 
